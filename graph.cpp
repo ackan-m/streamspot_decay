@@ -261,10 +261,18 @@ void construct_shingle_vectors(vector<shingle_vector>& shingle_vectors,
 //    - Last chunk length > 2
 //      Hash and add last chunk
 //      Hash and remove last chunk - "et"
-tuple<vector<int>, chrono::nanoseconds, chrono::nanoseconds>
+// tuple<vector<int>, chrono::nanoseconds, chrono::nanoseconds>
+// update_streamhash_sketches(const edge& e, const vector<graph>& graphs,
+//                            vector<bitset<L>>& streamhash_sketches,
+//                            vector<vector<int>>& streamhash_projections,
+//                            uint32_t chunk_length,
+//                            const vector<vector<uint64_t>>& H,
+//                            Counter quasi_heap[][m],
+//                            StreamHeap streamheap[]) {
+tuple<vector<double>, chrono::nanoseconds, chrono::nanoseconds>
 update_streamhash_sketches(const edge& e, const vector<graph>& graphs,
                            vector<bitset<L>>& streamhash_sketches,
-                           vector<vector<int>>& streamhash_projections,
+                           vector<vector<double>>& streamhash_projections,
                            uint32_t chunk_length,
                            const vector<vector<uint64_t>>& H,
                            Counter quasi_heap[][m],
@@ -400,58 +408,36 @@ update_streamhash_sketches(const edge& e, const vector<graph>& graphs,
   cout << endl;
 #endif
 
-  //時間減衰を考えるところ
-  // Counter old_quasi_heap[m] = quasi_heap[gid];
-  // int old_streamheap_size = streamheap[gid].size;
-  //
-  // for (auto& c : outgoing_chunks) {
-  //   ssqAlgorithm(quasi_heap, streamheap, c, gid);
-  // }
-  // //ここまで時間減衰考える
-
   // record the change in the projection vector
   // this is used to update the centroid
-  vector<int> projection_delta(L, 0);
+  // vector<int> projection_delta(L, 0);
+  vector<double> projection_delta(L, 0);
+  double decayed_delta;
 
   start = chrono::steady_clock::now(); // start sketch update
   // update the projection vectors
   for (auto& chunk : incoming_chunks) {
     for (uint32_t i = 0; i < L; i++) {
+      decayed_delta = projection[i];
+      // cout << decayed_delta << " ";
       int delta = hashmulti(chunk, H[i]);
+      projection[i] *= DECAYED_RATE;  //減衰させる
       projection[i] += delta;
-      projection_delta[i] += delta;
+      // cout << projection[i] << " " ;
+      decayed_delta = projection[i] - decayed_delta;
+      // cout << decayed_delta << endl;
+      projection_delta[i] += decayed_delta;
     }
   }
 
-  for (auto& chunk : outgoing_chunks) {
-    for (uint32_t i = 0; i < L; i++) {
-      int delta = hashmulti(chunk, H[i]);
-      projection[i] -= delta;
-      projection_delta[i] -= delta;
-    }
-  }
-  double add_delta[L] = {};
-  double sub_delta[L] = {};
-  for(auto& chunk : outgoing_chunks){
-    //decayed string add
-    for(int i =0; i < L ;i++){//スケッチサイズ
-      for(int j = 0; j < streamheap[gid].size; j++) {//heap size
-        add_delta[i] += quasi_heap[gid][j].cnt * hashmulti(quasi_heap[gid][j].item, H[i]);
-      }
-    }
-
-    //decayed string sub
-    for(int i =0; i < L ;i++){//スケッチサイズ
-      for(int j = 0; j < old_streamheap_size; j++) {//heap size
-        sub_delta[i] += old_quasi_heap[j].cnt * hashmulti(old_quasi_heap[j].item, H[i]);
-      }
-    }
-
-    for(int i=0;i<L;i++){
-      projection[i] += add_delta[i] - sub_delta[i];
-      projection_delta[i] += add_delta[i] - sub_delta[i];
-    }
-  }
+  // このプログラムではoutは見ない
+  // for (auto& chunk : outgoing_chunks) {
+  //   for (uint32_t i = 0; i < L; i++) {
+  //     int delta = hashmulti(chunk, H[i]);
+  //     projection[i] -= delta;
+  //     projection_delta[i] -= delta;
+  //   }
+  // }
 
   // update sketch = sign(projection)
   for (uint32_t i = 0; i < L; i++) {

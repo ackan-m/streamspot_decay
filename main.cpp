@@ -239,7 +239,8 @@ int main(int argc, char *argv[]) {
   // per-graph data structures
   vector<graph> graphs(num_graphs);
   vector<bitset<L>> streamhash_sketches(num_graphs);
-  vector<vector<int>> streamhash_projections(num_graphs, vector<int>(L, 0));
+  // vector<vector<int>> streamhash_projections(num_graphs, vector<int>(L, 0));
+  vector<vector<double>> streamhash_projections(num_graphs, vector<double>(L, 0.0)); //減衰用にdouble型
   vector<bitset<L>> simhash_sketches(num_graphs);
   vector<shingle_vector> shingle_vectors(num_graphs);
 
@@ -450,7 +451,8 @@ int main(int argc, char *argv[]) {
       // update sketches
       chrono::nanoseconds shingle_construction_time;
       chrono::nanoseconds sketch_update_time;
-      vector<int> projection_delta;
+      // vector<int> projection_delta;
+      vector<double> projection_delta;
 
       //時間減衰考える
       // cout << quasi_heap[0][0].item<<endl;
