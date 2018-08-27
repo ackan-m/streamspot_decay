@@ -19,7 +19,7 @@
 #include <vector>
 #include <string>
 
-#include "fssq.h"
+// #include "fssq.h"
 
 namespace std {
 
@@ -401,12 +401,12 @@ update_streamhash_sketches(const edge& e, const vector<graph>& graphs,
 #endif
 
   //時間減衰を考えるところ
-  Counter old_quasi_heap[m] = quasi_heap[gid];
-  int old_streamheap_size = streamheap[gid].size;
-
-  for (auto& c : outgoing_chunks) {
-    ssqAlgorithm(quasi_heap, streamheap, c, gid);
-  }
+  // Counter old_quasi_heap[m] = quasi_heap[gid];
+  // int old_streamheap_size = streamheap[gid].size;
+  //
+  // for (auto& c : outgoing_chunks) {
+  //   ssqAlgorithm(quasi_heap, streamheap, c, gid);
+  // }
   // //ここまで時間減衰考える
 
   // record the change in the projection vector
@@ -450,23 +450,8 @@ update_streamhash_sketches(const edge& e, const vector<graph>& graphs,
     for(int i=0;i<L;i++){
       projection[i] += add_delta[i] - sub_delta[i];
       projection_delta[i] += add_delta[i] - sub_delta[i];
-      // projection[i] -= sub_delta[i];
-      // projection_delta[i] -= sub_delta[i];
     }
   }
-  // if(gid == 3){
-  //   cout << projection_delta[0] << " ";
-  //   cout << add_delta[0]<< " ";
-  //   cout << sub_delta[0] << " ";
-  //
-  // cout << "add : " << endl;
-  // for(int i=0; i<L ; i++){
-  //   cout << add_delta[i] - sub_delta[i]<< " ";
-  // }cout << endl;
-  // cout << "sub : " << endl;
-  // for(int i=0; i<L ; i++){
-  //   cout << sub_delta[i] << " ";
-  // }cout << endl;
 
   // update sketch = sign(projection)
   for (uint32_t i = 0; i < L; i++) {
