@@ -76,14 +76,6 @@ void test_anomalies(uint32_t num_graphs,
                     const vector<unordered_map<bitset<R>,vector<uint32_t>>>&
                       hash_tables);
 
-//heapのcounter定義
-// struct Counter{
-//   int item = 100;
-//   double cnt = 0;
-//   int ut = 0;
-//   double error = 0;
-// };
-
 int main(int argc, char *argv[]) {
   vector<vector<uint64_t>> H(L);                 // Universal family H, contains
                                                  // L hash functions, each
@@ -165,7 +157,7 @@ int main(int argc, char *argv[]) {
   double global_threshold;
 
   tie(clusters, cluster_thresholds, global_threshold) =
-    read_bootstrap_clusters(bootstrap_file);
+    read_bootstrap_clusters(bootstrap_file);//io.cpp
   unordered_set<uint32_t> train_gids;
   uint32_t nclusters = clusters.size();
   vector<uint32_t> cluster_sizes(nclusters);

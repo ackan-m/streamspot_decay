@@ -5,6 +5,7 @@
  */
 
 #include <bitset>
+#include <iostream>
 #include "hash.h"
 #include "param.h"
 #include "streamhash.h"
@@ -30,7 +31,7 @@ construct_streamhash_sketch(const unordered_map<string,uint32_t>& shingle_vector
     auto& shingle = kv.first;
     auto& count = kv.second;
     for (uint32_t i = 0; i < L; i++) {
-      projection[i] += count * hashmulti(shingle, H[i]);
+      projection[i] += int(count * hashmulti(shingle, H[i]));
     }
   }
 
