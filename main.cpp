@@ -27,6 +27,7 @@
 #include "simhash.h"
 #include "streamhash.h"
 #include "fssq.h"
+#include "decayed_train.h"
 
 using namespace std;
 
@@ -236,23 +237,30 @@ int main(int argc, char *argv[]) {
   vector<bitset<L>> simhash_sketches(num_graphs);
   vector<shingle_vector> shingle_vectors(num_graphs);
 
+  // set up universal hash family for StreamHash
+  allocate_random_bits(H, prng, chunk_length);
+
   // construct bootstrap graphs offline
   cout << "Constructing " << train_gids.size() << " training graphs:" << endl;
   for (auto& e : train_edges) {
     update_graphs(e, graphs);
+    decayed_trained_streamhash_projection(e, graphs, streamhash_sketches,
+                               streamhash_projections, chunk_length, H);
   }
 
-  // set up universal hash family for StreamHash
-  allocate_random_bits(H, prng, chunk_length);
+
 
   // construct StreamHash sketches for bootstrap graphs offline
   cout << "Constructing StreamHash sketches for training graphs:" << endl;
   for (auto& gid : train_gids) {
-    unordered_map<string,uint32_t> temp_shingle_vector =
-      construct_temp_shingle_vector(graphs[gid], chunk_length);
-    tie(streamhash_sketches[gid], streamhash_projections[gid]) =
-      construct_streamhash_sketch(temp_shingle_vector, H);
+    // unordered_map<string,uint32_t> temp_shingle_vector =
+    //   construct_temp_shingle_vector(graphs[gid], chunk_length);
+    // tie(streamhash_sketches[gid], streamhash_projections[gid]) =
+    //   construct_streamhash_sketch(temp_shingle_vector, H);
 
+      for (uint32_t i = 0; i < L; i++) {
+        streamhash_sketches[gid][i] = streamhash_projections[gid][i] >= 0 ? 1 : 0;
+      }
     //クラスタ作るようにスケッチを出力
     /*
     cout << "#" <<gid << endl;
