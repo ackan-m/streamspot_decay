@@ -44,7 +44,7 @@ namespace std {
     auto& src_type = get<F_STYPE>(e);
     auto& gid = get<F_GID>(e);
 
-    auto& sketch = streamhash_sketches[gid];
+    // auto& sketch = streamhash_sketches[gid];
     auto& projection = streamhash_projections[gid];
     auto& g = graphs[gid];
 
@@ -167,7 +167,7 @@ namespace std {
     // double decayed_delta;
 
     // start = chrono::steady_clock::now(); // start sketch update
-
+    
     // update the projection vectors
     for (auto& chunk : incoming_chunks) {
       for (uint32_t i = 0; i < L; i++) {

@@ -197,10 +197,14 @@ int main(int argc, char *argv[]) {
       continue;
     }
     if (train_gids.find(i) == train_gids.end()) {
-      test_gids.push_back(i);
+      // テストを特定のグラフにする
+      if(i == 26){
+        test_gids.push_back(i);
+      }
+      // test_gids.push_back(i);
     }
   }
-  shuffle(test_gids.begin(), test_gids.end(), prng);
+  // shuffle(test_gids.begin(), test_gids.end(), prng); //グラフ順をシャッフルしてる
 
   vector<vector<uint32_t>> groups;
   for (uint32_t i = 0; i < test_gids.size(); i += par) {
@@ -262,69 +266,94 @@ int main(int argc, char *argv[]) {
         streamhash_sketches[gid][i] = streamhash_projections[gid][i] >= 0 ? 1 : 0;
       }
     //クラスタ作るようにスケッチを出力
-    /*
+
     cout << "#" <<gid << endl;
     cout << "[";
     for (int i = 0 ; i < L-1 ; i++){
       cout << streamhash_sketches[gid][i] << ",";
     } cout << streamhash_sketches[gid][L-1] << "]" <<endl;
-    */
+
   }
 
 #ifdef DEBUG
   // StreamHash similarity has been verified to be accurate for C=50
   for (auto& gid1 : train_gids) {
     for (auto& gid2 : train_gids) {
-      if(gid1 == 25 || gid1 == 9 || gid1 == 8){
-      cout << gid1 << "\t" << gid2 << "\t";
-      cout << cos(PI*(1.0 - streamhash_similarity(streamhash_sketches[gid1],
-                                                  streamhash_sketches[gid2])));
-      cout << endl;
+      if(gid1 == 1){
+        if(gid2 == 0 || gid2 == 2 || gid2 ==11){
+          cout << gid1 << "\t" << gid2 << "\t";
+          cout << cos(PI*(1.0 - streamhash_similarity(streamhash_sketches[gid1],
+                                                      streamhash_sketches[gid2])));
+          cout << endl;
+        }
       }
     }
   }
 #endif
 
   //しきい値決めたい
-  /*
+
   double score;
   double sum[4]={0};
   double nijou[4]={0};
   double ave[4] = {0};
   double th[4]={0};
-  for(auto& gid1:train_gids){
-    for(auto& gid2:train_gids){
-      if(gid1==2){
-        if(gid2==1||gid2==3||gid2==4){
-          score = 1-cos(PI*(1.0 - streamhash_similarity(streamhash_sketches[gid1],
-                                                      streamhash_sketches[gid2])));
-          sum[0] += score;
-          nijou[0] += score*score;
+
+  int medoid[] = {11,14};
+  for (int i = 0; i < int(nclusters); i++) {
+    cout << "cluster" << i << endl;
+    for (auto& gid : clusters[i]) {
+      if(int(gid) != medoid[i]){
+          cout << "gid" << gid << endl;
+          score = 1-cos(PI*(1.0 - streamhash_similarity(streamhash_sketches[gid],
+                                                      streamhash_sketches[medoid[i]])));
+          sum[i] += score;
+          nijou[i] += score*score;
           sum[3] += score;
           nijou[3] += score*score;
-        }
-      }else if(gid1==7){
-        if(gid2==6||gid2==8||gid2==9||gid2==11||gid2==12||gid2==13||gid2==14||gid2==15){
-          score = 1-cos(PI*(1.0 - streamhash_similarity(streamhash_sketches[gid1],
-                                                      streamhash_sketches[gid2])));
-          sum[1] += score;
-          nijou[1] += score*score;
-          sum[3] += score;
-          nijou[3] += score*score;
-        }
       }
     }
-  }*/
-  /*
-  ave[0] = sum[0]/3; ave[1] = sum[1]/8; //ave[2] = sum[2]/3;
-  th[0] = nijou[0]/3-ave[0]*ave[0];th[1] = nijou[1]/8-ave[1]*ave[1];//th[2] = nijou[2]/3-ave[2]*ave[2];
-   ave[3] = sum[3]/11; th[3] = nijou[3]/11-ave[3]*ave[3];
-   cout << "しきい値" << endl;
+  }
+
+  // for(auto& gid1:train_gids){
+  //   for(auto& gid2:train_gids){
+  //     if(gid1==10){
+  //       if(gid2==7||gid2==11||gid2==12||gid2==6||gid2==14||gid2==15){
+  //         score = 1-cos(PI*(1.0 - streamhash_similarity(streamhash_sketches[gid1],
+  //                                                     streamhash_sketches[gid2])));
+  //         sum[0] += score;
+  //         nijou[0] += score*score;
+  //         sum[3] += score;
+  //         nijou[3] += score*score;
+  //         cout << score << endl;
+  //       }
+  //     }else if(gid1==16){
+  //       if(gid2==8||gid2==9||gid2==13/*||gid2==12||gid2==12||gid2==6||gid2==15||gid2==3*/){
+  //         score = 1-cos(PI*(1.0 - streamhash_similarity(streamhash_sketches[gid1],
+  //                                                     streamhash_sketches[gid2])));
+  //         sum[1] += score;
+  //         nijou[1] += score*score;
+  //         sum[3] += score;
+  //         nijou[3] += score*score;
+  //         cout << score << endl;
+  //       }
+  //     }
+  //   }
+  // }
+  ///*
+
+  cout << cluster_sizes[0] << " " << cluster_sizes[1] << endl;
+  ave[0] = sum[0]/(cluster_sizes[0]-1); ave[1] = sum[1]/(cluster_sizes[1]-1); //ave[2] = sum[2]/3;
+  th[0] = nijou[0]/(cluster_sizes[0]-1)-ave[0]*ave[0];
+  th[1] = nijou[1]/(cluster_sizes[1]-1)-ave[1]*ave[1];//th[2] = nijou[2]/3-ave[2]*ave[2];
+  ave[3] = sum[3]/((cluster_sizes[0]-1)+(cluster_sizes[1]-1));
+  th[3] = nijou[3]/((cluster_sizes[0]-1)+(cluster_sizes[1]-1))-ave[3]*ave[3];
+  cout << "しきい値" << endl;
   cout <<ave[0] << " " <<th[0] <<" " <<ave[0]+3*sqrt(th[0])<< endl;
   cout <<ave[1] << " " <<th[1] <<" " <<ave[1]+3*sqrt(th[1])<< endl;
   //cout <<ave[2] << " " <<th[2] <<" " <<ave[2]+3*sqrt(th[2])<< endl;
   cout <<ave[3] << " " <<th[3] <<" " <<ave[3]+3*sqrt(th[3])<< endl;
-  */
+  //*/
 
   // per-cluster data structures
   vector<vector<double>> centroid_projections;
@@ -440,7 +469,22 @@ int main(int argc, char *argv[]) {
         cache.pop_front();
       }
       cache.push_back(e); // newest edge at tail
+      cout << "check cache: "<<cache.size()<<endl;
+      for(auto& E:cache){
+        auto& src_id = get<F_S>(E);
+        auto& src_type = get<F_STYPE>(E);
+        auto& dst_id = get<F_D>(E);
+        auto& dst_type = get<F_DTYPE>(E);
+        auto& e_type = get<F_ETYPE>(E);
+        auto& gid = get<F_GID>(E);
 
+        cout << src_id << " ";
+        cout << src_type << " ";
+        cout << dst_id << " ";
+        cout << dst_type << " ";
+        cout << e_type << " ";
+        cout << gid << endl;
+      }
       // update graph
       start = chrono::steady_clock::now();
       update_graphs(e, graphs);
@@ -460,12 +504,12 @@ int main(int argc, char *argv[]) {
       // cout << quasi_heap[0][0].cnt << endl;
       // cout << streamheap[0].t << endl;
 
-      /*
-      元々こっちが書いてあった
-      tie(projection_delta, shingle_construction_time, sketch_update_time) =
-        update_streamhash_sketches(e, graphs, streamhash_sketches,
-                                   streamhash_projections, chunk_length, H);
-      */
+
+      // 元々こっちが書いてあった
+      // tie(projection_delta, shingle_construction_time, sketch_update_time) =
+      //   update_streamhash_sketches(e, graphs, streamhash_sketches,
+      //                              streamhash_projections, chunk_length, H);
+
       tie(projection_delta, shingle_construction_time, sketch_update_time) =
         update_streamhash_sketches(e, graphs, streamhash_sketches,
                                    streamhash_projections, chunk_length, H,

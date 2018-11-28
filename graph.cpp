@@ -418,14 +418,11 @@ update_streamhash_sketches(const edge& e, const vector<graph>& graphs,
   // update the projection vectors
   for (auto& chunk : incoming_chunks) {
     for (uint32_t i = 0; i < L; i++) {
-      decayed_delta = projection[i];
-      // cout << decayed_delta << " ";
+      decayed_delta = projection[i]; //前の射影を記憶
       int delta = hashmulti(chunk, H[i]);
       projection[i] *= DECAYED_RATE;  //減衰させる
       projection[i] += delta;
-      // cout << projection[i] << " " ;
-      decayed_delta = projection[i] - decayed_delta;
-      // cout << decayed_delta << endl;
+      decayed_delta = projection[i] - decayed_delta; //前の射影との差を記憶
       projection_delta[i] += decayed_delta;
     }
   }
